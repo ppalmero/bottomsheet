@@ -4,6 +4,7 @@ import android.content.Context;
 import android.widget.Toast;
 
 import org.ksoap2.SoapEnvelope;
+import org.ksoap2.serialization.MarshalFloat;
 import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -100,6 +101,125 @@ public class callWS {
         }
 
         envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+        envelope.setOutputSoapObject(request);
+        try {
+            httpTransportSE = new HttpTransportSE(URL);
+            httpTransportSE.call(NAMESPACE + wsNombre, envelope);
+            soapPrimitive = (SoapPrimitive)envelope.getResponse();
+            result = soapPrimitive.toString();
+            if(result != null) {
+                return result;
+            } else {
+                Toast.makeText(context, "Not  Response",Toast.LENGTH_LONG).show();
+                return "retorna nada";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error" + e.getMessage();
+        }
+    }
+
+    public String requestWSsConsultas(Consultas parametro, Map<String, Float> parametrosWSArea, Map<String, Long> parametrosWSFechas, Map<String, Integer> parametrosWSHoras, Context context){
+        SoapObject request = null;
+        String wsNombre = "";
+        SoapSerializationEnvelope envelope;
+        HttpTransportSE httpTransportSE;
+        SoapPrimitive soapPrimitive;
+        PropertyInfo propertyInfo;
+        String result;
+        envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+        //envelope.dotNet = true;
+        switch (parametro){
+            case INTERVALO:
+                wsNombre = Wss.consultarIntervalo.name();
+                request = new SoapObject(NAMESPACE, wsNombre);
+
+                propertyInfo = new PropertyInfo();
+                propertyInfo.setName("arg0");
+                propertyInfo.setValue(parametrosWSArea.get("xmin"));//0.253
+                propertyInfo.setType(Float.class);
+                request.addProperty(propertyInfo);
+                PropertyInfo propertyInfo1 = new PropertyInfo();
+                propertyInfo1.setName("arg1");
+                propertyInfo1.setValue(parametrosWSArea.get("ymin"));//0.285
+                propertyInfo1.setType(Float.class);
+                request.addProperty(propertyInfo1);
+                PropertyInfo propertyInfo2 = new PropertyInfo();
+                propertyInfo2.setName("arg2");
+                propertyInfo2.setValue(parametrosWSArea.get("xmax"));//0.511
+                propertyInfo2.setType(Float.class);
+                request.addProperty(propertyInfo2);
+                PropertyInfo propertyInfo3 = new PropertyInfo();
+                propertyInfo3.setName("arg3");
+                propertyInfo3.setValue(parametrosWSArea.get("ymax"));//0.574
+                propertyInfo3.setType(Float.class);
+                request.addProperty(propertyInfo3);
+
+                MarshalFloat md = new MarshalFloat();
+                md.register(envelope);
+
+                PropertyInfo propertyInfo4 = new PropertyInfo();
+                propertyInfo4.setName("arg4");
+                propertyInfo4.setValue(parametrosWSFechas.get("ti"));//1509591500000
+                propertyInfo4.setType(Long.class);
+                request.addProperty(propertyInfo4);
+                PropertyInfo propertyInfo5 = new PropertyInfo();
+                propertyInfo5.setName("arg5");
+                propertyInfo5.setValue(parametrosWSHoras.get("hi"));
+                propertyInfo5.setType(Integer.class);
+                request.addProperty(propertyInfo5);
+                PropertyInfo propertyInfo6 = new PropertyInfo();
+                propertyInfo6.setName("arg6");
+                propertyInfo6.setValue(parametrosWSFechas.get("tf"));//1512183600000
+                propertyInfo6.setType(Long.class);
+                request.addProperty(propertyInfo6);
+                PropertyInfo propertyInfo7 = new PropertyInfo();
+                propertyInfo7.setName("arg7");
+                propertyInfo7.setValue(parametrosWSHoras.get("hf"));
+                propertyInfo7.setType(Integer.class);
+                request.addProperty(propertyInfo7);
+                break;
+            case EVENTO:
+                wsNombre = Wss.consultarEvento.name();
+                request = new SoapObject(NAMESPACE, wsNombre);
+
+                propertyInfo = new PropertyInfo();
+                propertyInfo.setName("arg0");
+                propertyInfo.setValue(parametrosWSArea.get("xmin"));//0.253
+                propertyInfo.setType(Float.class);
+                request.addProperty(propertyInfo);
+                propertyInfo1 = new PropertyInfo();
+                propertyInfo1.setName("arg1");
+                propertyInfo1.setValue(parametrosWSArea.get("ymin"));//0.285
+                propertyInfo1.setType(Float.class);
+                request.addProperty(propertyInfo1);
+                propertyInfo2 = new PropertyInfo();
+                propertyInfo2.setName("arg2");
+                propertyInfo2.setValue(parametrosWSArea.get("xmax"));//0.511
+                propertyInfo2.setType(Float.class);
+                request.addProperty(propertyInfo2);
+                propertyInfo3 = new PropertyInfo();
+                propertyInfo3.setName("arg3");
+                propertyInfo3.setValue(parametrosWSArea.get("ymax"));//0.574
+                propertyInfo3.setType(Float.class);
+                request.addProperty(propertyInfo3);
+
+                md = new MarshalFloat();
+                md.register(envelope);
+
+                propertyInfo4 = new PropertyInfo();
+                propertyInfo4.setName("arg4");
+                propertyInfo4.setValue(parametrosWSFechas.get("ti"));//1509591500000
+                propertyInfo4.setType(Long.class);
+                request.addProperty(propertyInfo4);
+                propertyInfo5 = new PropertyInfo();
+                propertyInfo5.setName("arg5");
+                propertyInfo5.setValue(parametrosWSHoras.get("hi"));
+                propertyInfo5.setType(Integer.class);
+                request.addProperty(propertyInfo5);
+                break;
+        }
+
         envelope.setOutputSoapObject(request);
         try {
             httpTransportSE = new HttpTransportSE(URL);

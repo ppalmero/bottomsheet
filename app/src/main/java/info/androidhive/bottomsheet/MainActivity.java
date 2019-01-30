@@ -35,18 +35,11 @@ import at.grabner.circleprogress.AnimationState;
 import at.grabner.circleprogress.AnimationStateChangedListener;
 import at.grabner.circleprogress.CircleProgressView;
 import at.grabner.circleprogress.TextMode;
-import bdet.bitacora.BloqueBitacora;
-import bdet.bitacora.DatoBitacora;
-import bdet.comun.Constantes;
-import bdet.comun.Punto;
-import bdet.comun.Rectangulo;
-import bdet.dsrtree.DSRTree;
-import bdet.rtree.Dato;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.androidhive.bottomsheet.enums.Consultas;
-import info.androidhive.bottomsheet.views.DatePickerFragment;
+import info.androidhive.bottomsheet.listeners.Eventos;
 import info.androidhive.bottomsheet.views.FechaHoraActivity;
 import info.androidhive.bottomsheet.views.Teselado;
 import info.androidhive.bottomsheet.ws.callWS;
@@ -54,6 +47,8 @@ import info.androidhive.bottomsheet.ws.callWS;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int CONSULTA_INTERVALO = 1111;
+    private static final int CONSULTA_EVENTO = 2222;
 
     @BindView(R.id.expandir)
     Button btnExpandir;
@@ -105,6 +100,9 @@ public class MainActivity extends AppCompatActivity {
 
         ImageButton btnAxP = findViewById(R.id.ibAnimalesPorParcela);
         btnAxP.setOnClickListener(btnAxPListener);
+
+        ImageButton btnES = findViewById(R.id.ibEntradaYSalidaDeAnimales);
+        btnES.setOnClickListener(btnESListener);
 
         cargarCirculos();
 
@@ -201,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
             callWS cws = new callWS();
             try {
-                Map<String, Integer> parametrosWS = new HashMap<String, Integer>();
+                Map<String, Integer> parametrosWS = new HashMap<>();
                 parametrosWS.put("tiempo", tiempoActual);
 
                 JSONObject reader = new JSONObject(cws.requestWSs(Consultas.ANTERIOR, parametrosWS, getApplicationContext()));
@@ -221,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
             callWS cws = new callWS();
             try {
-                Map<String, Integer> parametrosWS = new HashMap<String, Integer>();
+                Map<String, Integer> parametrosWS = new HashMap();
                 parametrosWS.put("tiempo", tiempoActual + 1);
 
                 JSONObject reader = new JSONObject(cws.requestWSs(Consultas.SIGUIENTE, parametrosWS, getApplicationContext()));
@@ -279,16 +277,110 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
             Intent intent = new Intent(MainActivity.this, FechaHoraActivity.class);
             intent.putExtra("tipo", "intervalo");
-            startActivityForResult(intent, 1111);
+            startActivityForResult(intent, CONSULTA_INTERVALO);
+        }
+    };
+
+    private View.OnClickListener btnESListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            Intent intent = new Intent(MainActivity.this, FechaHoraActivity.class);
+            intent.putExtra("tipo", "evento");
+            startActivityForResult(intent, CONSULTA_EVENTO);
         }
     };
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 1111 && resultCode == Activity.RESULT_OK){
-            //TODO recuperar fecha y hora
-            String nombre = data.getExtras().getString("nombre");
+        if(requestCode == CONSULTA_INTERVALO && resultCode == Activity.RESULT_OK){
+            final long fi = data.getExtras().getLong("FI");
+            final int hi = data.getExtras().getInt("HI");
+            final long ff = data.getExtras().getLong("FF");
+            final int hf = data.getExtras().getInt("HF");
+            Toast toast = Toast.makeText(getApplicationContext(), "Indicar parcela", Toast.LENGTH_LONG);
+            toast.show();
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            Teselado t = (Teselado)findViewById(R.id.teseladoView);
+            t.setOnStopTrackEventListener(new Eventos() {
+                @Override
+                public void onStopTrack(Float xDown, Float yDown, Float x, Float y) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Parcela: " + xDown + yDown + x + y, Toast.LENGTH_LONG);
+                    toast.show();
+                    callWS cws = new callWS();
+                    Map<String, Float> parametrosArea = new HashMap<>();
+                    parametrosArea.put("xmin", xDown.intValue() / 1000f);
+                    parametrosArea.put("ymin", yDown.intValue() / 1000f);
+                    parametrosArea.put("xmax", x.intValue() / 1000f);
+                    parametrosArea.put("ymax", y.intValue() / 1000f);
+                    Map<String, Long> parametroFechas = new HashMap<>();
+                    parametroFechas.put("ti", fi);
+                    parametroFechas.put("tf", ff);
+                    Map<String, Integer> parametrosHoras = new HashMap<>();
+                    parametrosHoras.put("hi", hi);
+                    parametrosHoras.put("hf", hf);
+
+                    try {
+                        JSONObject reader = new JSONObject(cws.requestWSsConsultas(Consultas.INTERVALO, parametrosArea, parametroFechas, parametrosHoras, getApplicationContext()));
+                        JSONObject puntos = reader.getJSONObject("Entradas");
+                        ArrayList<Integer> vacasID = new ArrayList<>();
+                        for (int i = 0; i < puntos.length(); i++) {
+                            vacasID.add( puntos.getInt("ID" + i));
+                        }
+                        Teselado t = (Teselado)findViewById(R.id.teseladoView);
+                        t.setVacasSeleccionadas(vacasID);
+                        t.drawVacas(true);
+                    } catch (JSONException e) {
+                        toast = Toast.makeText(getApplicationContext(), "JSON Malformado " + e.getMessage(), Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+                }
+            });
+        } else if(requestCode == CONSULTA_EVENTO && resultCode == Activity.RESULT_OK){
+            final long fi = data.getExtras().getLong("FI");
+            final int hi = data.getExtras().getInt("HI");
+            Toast toast = Toast.makeText(getApplicationContext(), "Indicar parcela", Toast.LENGTH_LONG);
+            toast.show();
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            Teselado t = findViewById(R.id.teseladoView);
+            t.setOnStopTrackEventListener(new Eventos() {
+                @Override
+                public void onStopTrack(Float xDown, Float yDown, Float x, Float y) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Parcela: " + xDown + yDown + x + y, Toast.LENGTH_LONG);
+                    toast.show();
+                    callWS cws = new callWS();
+                    Map<String, Float> parametrosArea = new HashMap<>();
+                    parametrosArea.put("xmin", xDown.intValue() / 1000f);
+                    parametrosArea.put("ymin", yDown.intValue() / 1000f);
+                    parametrosArea.put("xmax", x.intValue() / 1000f);
+                    parametrosArea.put("ymax", y.intValue() / 1000f);
+                    Map<String, Long> parametroFechas = new HashMap<>();
+                    parametroFechas.put("ti", fi);
+                    Map<String, Integer> parametrosHoras = new HashMap<>();
+                    parametrosHoras.put("hi", hi);
+
+                    try {
+                        JSONObject reader = new JSONObject(cws.requestWSsConsultas(Consultas.EVENTO, parametrosArea, parametroFechas, parametrosHoras, getApplicationContext()));
+
+                        JSONObject puntosIn = reader.getJSONObject("Entradas");
+                        ArrayList<Integer> vacasIDIn = new ArrayList<>();
+                        for (int i = 0; i < puntosIn.length(); i++) {
+                            vacasIDIn.add( puntosIn.getInt("ID" + i));
+                        }
+
+                        JSONObject puntosOut = reader.getJSONObject("Salidas");
+                        ArrayList<Integer> vacasIDOut = new ArrayList<>();
+                        for (int i = 0; i < puntosOut.length(); i++) {
+                            vacasIDOut.add( puntosOut.getInt("ID" + i));
+                        }
+                        Teselado t = (Teselado)findViewById(R.id.teseladoView);
+                        t.setVacasInOut(vacasIDIn, vacasIDOut);
+                        t.drawVacas(true);
+                    } catch (JSONException e) {
+                        toast = Toast.makeText(getApplicationContext(), "JSON Malformado " + e.getMessage(), Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+                }
+            });
         }
     }
 

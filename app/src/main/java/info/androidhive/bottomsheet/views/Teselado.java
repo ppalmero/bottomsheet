@@ -10,11 +10,13 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import info.androidhive.bottomsheet.R;
 import info.androidhive.bottomsheet.Vaca;
+import info.androidhive.bottomsheet.listeners.Eventos;
 
 /**
  * TODO: document your custom view class.
@@ -29,9 +31,10 @@ public class Teselado extends View {
     private boolean dibujarVacas;
     private Map<Integer, Vaca> vacas;
     private Map<Integer, Vaca> vacasModificadas = new HashMap<>();
-    private Map<Integer, Vaca> vacasIn;
-    private Map<Integer, Vaca> vacasOut;
     private Map<Integer, Vaca> oldsVacas = new HashMap<>();
+    private ArrayList<Integer> vacasSeleccionadas = new ArrayList<>();
+    private ArrayList<Integer> vacasIn = new ArrayList<>();
+    private ArrayList<Integer> vacasOut = new ArrayList<>();
 
     public Teselado(Context context) {
         super(context);
@@ -82,6 +85,19 @@ public class Teselado extends View {
                 if (vacasModificadas.containsKey(i)){
                     d.setBounds((int) (vacasModificadas.get(i).getX() * ancho), (int) (vacasModificadas.get(i).getY() * alto), (int)((vacasModificadas.get(i).getX() + d.getIntrinsicWidth()) * ancho), (int)((vacasModificadas.get(i).getY() + d.getIntrinsicHeight()) * alto));
                     d.draw(canvas);
+                    if (vacasSeleccionadas.contains(i)){
+                        paint.setColor(Color.YELLOW);
+                        canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        paint.setColor(Color.BLUE);
+                    } else if (vacasIn.contains(i)){
+                        paint.setColor(Color.GREEN);
+                        canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        paint.setColor(Color.BLUE);
+                    } else if (vacasOut.contains(i)){
+                        paint.setColor(Color.RED);
+                        canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        paint.setColor(Color.BLUE);
+                    }
                     //TODO DIBUJAR FLECHA
 
                     if (vacas.get(i).getX() != vacasModificadas.get(i).getX() || vacas.get(i).getY() != vacasModificadas.get(i).getY()) {
@@ -97,6 +113,19 @@ public class Teselado extends View {
                 } else {
                     d.setBounds((int) (vacas.get(i).getX() * ancho), (int) (vacas.get(i).getY() * alto), (int)((vacas.get(i).getX() + d.getIntrinsicWidth()) * ancho), (int) ((vacas.get(i).getY() + d.getIntrinsicHeight()) * alto));
                     d.draw(canvas);
+                    if (vacasSeleccionadas.contains(i)){
+                        paint.setColor(Color.YELLOW);
+                        canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        paint.setColor(Color.BLUE);
+                    } else if (vacasIn.contains(i)){
+                        paint.setColor(Color.GREEN);
+                        canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        paint.setColor(Color.BLUE);
+                    } else if (vacasOut.contains(i)){
+                        paint.setColor(Color.RED);
+                        canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        paint.setColor(Color.BLUE);
+                    }
                 }
             }
         }
@@ -112,6 +141,18 @@ public class Teselado extends View {
         }
         if (me.getAction() == MotionEvent.ACTION_MOVE){
             accion = "move";
+        }
+        if (me.getAction() == MotionEvent.ACTION_UP){
+            if ((x < xDown) && (y < yDown)) {
+                stop(x, y, xDown, yDown);
+            } else if (x < xDown) {
+                stop(x, yDown, xDown, y);
+            } else if (y < yDown) {
+                stop(xDown, y, x, yDown);
+            } else {
+                stop(xDown, yDown, x, y);
+            }
+
         }
 
         invalidate();
@@ -144,5 +185,30 @@ public class Teselado extends View {
 
     public void setVacasModificadas (Map<Integer, Vaca> vacas) {
         this.vacasModificadas = vacas;
+    }
+
+    private Eventos mOnStopTrackEventListener;
+
+    public void setOnStopTrackEventListener(Eventos eventListener)
+    {
+        mOnStopTrackEventListener = eventListener;
+    }
+
+    public void stop(float x, float y, float xDown, float yDown)
+    {
+        if(mOnStopTrackEventListener != null)
+        {
+            mOnStopTrackEventListener.onStopTrack(x, y, xDown, yDown);
+        }
+
+    }
+
+    public void setVacasSeleccionadas(ArrayList<Integer> vacasID) {
+        this.vacasSeleccionadas = vacasID;
+    }
+
+    public void setVacasInOut(ArrayList<Integer> vacasIn, ArrayList<Integer> vacasOut) {
+        this.vacasIn = vacasIn;
+        this.vacasOut = vacasOut;
     }
 }
