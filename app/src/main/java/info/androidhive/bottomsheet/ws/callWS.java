@@ -119,7 +119,7 @@ public class callWS {
         }
     }
 
-    public String requestWSsConsultas(Consultas parametro, Map<String, Float> parametrosWSArea, Map<String, Long> parametrosWSFechas, Map<String, Integer> parametrosWSHoras, Context context){
+    public String requestWSsConsultas(Consultas parametro, Map<String, Float> parametrosWSArea, Map<String, Long> parametrosWSFechas, Map<String, Integer> parametrosWSHoras, Map<String, Integer> parametrosWSVacas, Context context){
         SoapObject request = null;
         String wsNombre = "";
         SoapSerializationEnvelope envelope;
@@ -185,22 +185,22 @@ public class callWS {
 
                 propertyInfo = new PropertyInfo();
                 propertyInfo.setName("arg0");
-                propertyInfo.setValue(parametrosWSArea.get("xmin"));//0.253
+                propertyInfo.setValue(parametrosWSArea.get("xmin"));//0.508
                 propertyInfo.setType(Float.class);
                 request.addProperty(propertyInfo);
                 propertyInfo1 = new PropertyInfo();
                 propertyInfo1.setName("arg1");
-                propertyInfo1.setValue(parametrosWSArea.get("ymin"));//0.285
+                propertyInfo1.setValue(parametrosWSArea.get("ymin"));//0.282
                 propertyInfo1.setType(Float.class);
                 request.addProperty(propertyInfo1);
                 propertyInfo2 = new PropertyInfo();
                 propertyInfo2.setName("arg2");
-                propertyInfo2.setValue(parametrosWSArea.get("xmax"));//0.511
+                propertyInfo2.setValue(parametrosWSArea.get("xmax"));//0.653
                 propertyInfo2.setType(Float.class);
                 request.addProperty(propertyInfo2);
                 propertyInfo3 = new PropertyInfo();
                 propertyInfo3.setName("arg3");
-                propertyInfo3.setValue(parametrosWSArea.get("ymax"));//0.574
+                propertyInfo3.setValue(parametrosWSArea.get("ymax"));//0.511
                 propertyInfo3.setType(Float.class);
                 request.addProperty(propertyInfo3);
 
@@ -209,15 +209,44 @@ public class callWS {
 
                 propertyInfo4 = new PropertyInfo();
                 propertyInfo4.setName("arg4");
-                propertyInfo4.setValue(parametrosWSFechas.get("ti"));//1509591500000
+                propertyInfo4.setValue(parametrosWSFechas.get("ti"));//1509505200000
                 propertyInfo4.setType(Long.class);
                 request.addProperty(propertyInfo4);
                 propertyInfo5 = new PropertyInfo();
                 propertyInfo5.setName("arg5");
-                propertyInfo5.setValue(parametrosWSHoras.get("hi"));
+                propertyInfo5.setValue(parametrosWSHoras.get("hi"));//3
                 propertyInfo5.setType(Integer.class);
                 request.addProperty(propertyInfo5);
                 break;
+            case TRAYECTORIA:
+                wsNombre = Wss.consultarTrayectoria.name();
+                request = new SoapObject(NAMESPACE, wsNombre);
+
+                propertyInfo = new PropertyInfo();
+                propertyInfo.setName("arg0");
+                propertyInfo.setValue(parametrosWSVacas.get("vaca"));//0.253
+                propertyInfo.setType(Integer.class);
+                request.addProperty(propertyInfo);
+                propertyInfo1 = new PropertyInfo();
+                propertyInfo1.setName("arg1");
+                propertyInfo1.setValue(parametrosWSFechas.get("ti"));//0.285
+                propertyInfo1.setType(Long.class);
+                request.addProperty(propertyInfo1);
+                propertyInfo2 = new PropertyInfo();
+                propertyInfo2.setName("arg2");
+                propertyInfo2.setValue(parametrosWSHoras.get("hi"));//0.511
+                propertyInfo2.setType(Integer.class);
+                request.addProperty(propertyInfo2);
+                propertyInfo3 = new PropertyInfo();
+                propertyInfo3.setName("arg3");
+                propertyInfo3.setValue(parametrosWSFechas.get("tf"));//0.574
+                propertyInfo3.setType(Long.class);
+                request.addProperty(propertyInfo3);
+                propertyInfo4 = new PropertyInfo();
+                propertyInfo4.setName("arg4");
+                propertyInfo4.setValue(parametrosWSHoras.get("hf"));//1509591500000
+                propertyInfo4.setType(Integer.class);
+                request.addProperty(propertyInfo4);
         }
 
         envelope.setOutputSoapObject(request);

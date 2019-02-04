@@ -22,9 +22,21 @@
             android:id="@+id/textView12"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Seleccionar fecha y hora"
+            android:text="Seleccionar datos"
             android:textSize="30sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvVacas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Elija el animal"
+            android:textSize="24sp" />
+
+        <Spinner
+            android:id="@+id/spVacas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView8"
@@ -87,7 +99,7 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/textView14"
+            android:id="@+id/tvFF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/cardview_default_radius"
@@ -95,6 +107,7 @@
             android:textSize="24sp" />
 
         <LinearLayout
+            android:id="@+id/llFF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -116,7 +129,7 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/textView18"
+            android:id="@+id/tvHF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/cardview_default_radius"
@@ -124,6 +137,7 @@
             android:textSize="24sp" />
 
         <LinearLayout
+            android:id="@+id/llHF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">

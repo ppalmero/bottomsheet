@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import bdet.comun.Punto;
 import info.androidhive.bottomsheet.R;
 import info.androidhive.bottomsheet.Vaca;
 import info.androidhive.bottomsheet.listeners.Eventos;
@@ -35,6 +36,12 @@ public class Teselado extends View {
     private ArrayList<Integer> vacasSeleccionadas = new ArrayList<>();
     private ArrayList<Integer> vacasIn = new ArrayList<>();
     private ArrayList<Integer> vacasOut = new ArrayList<>();
+    private float ancho, alto;
+    private int vacaSelected;
+    private ArrayList<Punto> trayectoria;
+    private boolean drawTrayectoria = false;
+    private boolean drawEvento = false;
+    private boolean drawIntervalo = false;
 
     public Teselado(Context context) {
         super(context);
@@ -54,8 +61,8 @@ public class Teselado extends View {
         paint.setStrokeWidth(2);
         paint.setColor(Color.BLUE);
 
-        float ancho = canvas.getWidth() / 1000f;
-        float alto  = canvas.getHeight() / 1000f;
+        ancho = canvas.getWidth() / 1000f;
+        alto  = canvas.getHeight() / 1000f;
 
         if (accion == "down"){
             //path.moveTo(x, y);
@@ -85,17 +92,29 @@ public class Teselado extends View {
                 if (vacasModificadas.containsKey(i)){
                     d.setBounds((int) (vacasModificadas.get(i).getX() * ancho), (int) (vacasModificadas.get(i).getY() * alto), (int)((vacasModificadas.get(i).getX() + d.getIntrinsicWidth()) * ancho), (int)((vacasModificadas.get(i).getY() + d.getIntrinsicHeight()) * alto));
                     d.draw(canvas);
-                    if (vacasSeleccionadas.contains(i)){
+                    if (drawIntervalo && vacasSeleccionadas.contains(i)){
                         paint.setColor(Color.YELLOW);
                         canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
                         paint.setColor(Color.BLUE);
-                    } else if (vacasIn.contains(i)){
-                        paint.setColor(Color.GREEN);
-                        canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
-                        paint.setColor(Color.BLUE);
-                    } else if (vacasOut.contains(i)){
-                        paint.setColor(Color.RED);
-                        canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                    } else if (drawEvento) {
+                        if (vacasIn.contains(i)){
+                            paint.setColor(Color.GREEN);
+                            canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                            paint.setColor(Color.BLUE);
+                        } else if (vacasOut.contains(i)) {
+                            paint.setColor(Color.RED);
+                            canvas.drawCircle((vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                            paint.setColor(Color.BLUE);
+                        }
+                    } else if (drawTrayectoria && vacasModificadas.containsKey(vacaSelected)) {
+                        paint.setColor(Color.rgb(255, 127, 0));
+                        canvas.drawCircle((vacasModificadas.get(vacaSelected).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(vacaSelected).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        int tSize = trayectoria.size() - 1;
+                        for (int j = 0; j < tSize; j++){
+                            canvas.drawLine((trayectoria.get(j).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(j + 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j + 1).y + d.getIntrinsicHeight() / 2) * alto, paint);
+                        }
+                        dibujarFlecha(canvas, (trayectoria.get(tSize - 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize - 1).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(tSize).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize).y + d.getIntrinsicHeight() / 2) * alto,6, 6, paint);
+
                         paint.setColor(Color.BLUE);
                     }
                     //TODO DIBUJAR FLECHA
@@ -113,23 +132,74 @@ public class Teselado extends View {
                 } else {
                     d.setBounds((int) (vacas.get(i).getX() * ancho), (int) (vacas.get(i).getY() * alto), (int)((vacas.get(i).getX() + d.getIntrinsicWidth()) * ancho), (int) ((vacas.get(i).getY() + d.getIntrinsicHeight()) * alto));
                     d.draw(canvas);
-                    if (vacasSeleccionadas.contains(i)){
+                    if (drawIntervalo && vacasSeleccionadas.contains(i)){
                         paint.setColor(Color.YELLOW);
                         canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
                         paint.setColor(Color.BLUE);
-                    } else if (vacasIn.contains(i)){
-                        paint.setColor(Color.GREEN);
-                        canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
-                        paint.setColor(Color.BLUE);
-                    } else if (vacasOut.contains(i)){
-                        paint.setColor(Color.RED);
-                        canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                    } else if (drawEvento) {
+                        if (vacasIn.contains(i)){
+                            paint.setColor(Color.GREEN);
+                            canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                            paint.setColor(Color.BLUE);
+                        } else if (vacasOut.contains(i)) {
+                            paint.setColor(Color.RED);
+                            canvas.drawCircle((vacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                            paint.setColor(Color.BLUE);
+                        }
+                    } else if (drawTrayectoria && vacas.containsKey(vacaSelected)) {
+                        paint.setColor(Color.rgb(255, 127, 0));
+                        canvas.drawCircle((vacas.get(vacaSelected).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacas.get(vacaSelected).getY() + d.getIntrinsicHeight() / 2) * alto, d.getIntrinsicWidth() / 2, paint);
+                        int tSize = trayectoria.size() - 2;
+                        for (int j = 0; j < tSize; j++){
+                            canvas.drawLine((trayectoria.get(j).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(j + 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j + 1).y + d.getIntrinsicHeight() / 2) * alto, paint);
+                        }
+                        dibujarFlecha(canvas, (trayectoria.get(tSize - 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize - 1).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(tSize).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize).y + d.getIntrinsicHeight() / 2) * alto,6, 6, paint);
+
                         paint.setColor(Color.BLUE);
                     }
                 }
             }
         }
         return;
+    }
+
+    private void dibujarFlecha(Canvas g, float x1, float y1, float x2, float y2, float d, float h, Paint p) {
+        /**
+         * Draw an arrow line between two points.
+         *
+         * @param g the graphics component.
+         * @param x1 x-position of first point.
+         * @param y1 y-position of first point.
+         * @param x2 x-position of second point.
+         * @param y2 y-position of second point.
+         * @param d the width of the arrow.
+         * @param h the height of the arrow.
+         */
+        float dx = x2 - x1, dy = y2 - y1;
+        float D = (float)Math.sqrt(dx * dx + dy * dy);
+        float xm = D - d, xn = xm, ym = h, yn = -h, x;
+        float sin = dy / D, cos = dx / D;
+
+        x = xm * cos - ym * sin + x1;
+        ym = xm * sin + ym * cos + y1;
+        xm = x;
+
+        x = xn * cos - yn * sin + x1;
+        yn = xn * sin + yn * cos + y1;
+        xn = x;
+
+        /*float[] xpoints = {x2, (int) xm, (int) xn};
+        float[] ypoints = {y2, (int) ym, (int) yn};*/
+
+        g.drawLine(x1, y1, x2, y2, p);
+
+        Path wallpath = new Path();
+        wallpath.reset(); // only needed when reusing this path for a new build
+        wallpath.moveTo(xm, ym); // used for first point
+        wallpath.lineTo(x2, y2);
+        wallpath.lineTo(xn, yn); // there is a setLastPoint action but i found it not to work as expected
+
+        g.drawPath(wallpath, p);
     }
 
     public boolean onTouchEvent (MotionEvent me){
@@ -144,13 +214,13 @@ public class Teselado extends View {
         }
         if (me.getAction() == MotionEvent.ACTION_UP){
             if ((x < xDown) && (y < yDown)) {
-                stop(x, y, xDown, yDown);
+                stop(x / ancho, y / alto, xDown / ancho, yDown / alto);
             } else if (x < xDown) {
-                stop(x, yDown, xDown, y);
+                stop(x / ancho, yDown / alto, xDown / ancho, y / alto);
             } else if (y < yDown) {
-                stop(xDown, y, x, yDown);
+                stop(xDown / ancho, y / alto, x / ancho, yDown / alto);
             } else {
-                stop(xDown, yDown, x, y);
+                stop(xDown / ancho, yDown / alto, x / ancho, y / alto);
             }
 
         }
@@ -204,11 +274,25 @@ public class Teselado extends View {
     }
 
     public void setVacasSeleccionadas(ArrayList<Integer> vacasID) {
+        this.drawIntervalo = true;
+        this.drawEvento = false;
+        this.drawTrayectoria = false;
         this.vacasSeleccionadas = vacasID;
     }
 
     public void setVacasInOut(ArrayList<Integer> vacasIn, ArrayList<Integer> vacasOut) {
+        this.drawIntervalo = false;
+        this.drawEvento = true;
+        this.drawTrayectoria = false;
         this.vacasIn = vacasIn;
         this.vacasOut = vacasOut;
+    }
+
+    public void setTrayectoria(int vacaID, ArrayList<Punto> trayectoria) {
+        this.drawIntervalo = false;
+        this.drawEvento = false;
+        this.drawTrayectoria = true;
+        this.vacaSelected = vacaID;
+        this.trayectoria = trayectoria;
     }
 }
