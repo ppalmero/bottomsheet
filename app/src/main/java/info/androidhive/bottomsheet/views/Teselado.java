@@ -1,14 +1,21 @@
 package info.androidhive.bottomsheet.views;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.Region;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.shapes.OvalShape;
+import android.graphics.drawable.shapes.Shape;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +76,7 @@ public class Teselado extends View {
             xDown = x;
             yDown = y;
         }
-        if (accion == "move"){
+        if (accion == "move" && (drawEvento || drawIntervalo)){
             //path.lineTo(x, y);
             path.reset();
             if ((x < xDown) && (y < yDown)) {
@@ -81,8 +88,22 @@ public class Teselado extends View {
             } else {
                 path.addRect(xDown, yDown, x, y, Path.Direction.CW);
             }
+            canvas.drawPath(path, paint);
         }
-        canvas.drawPath(path, paint);
+
+        if (accion == "select") {
+            //TODO seleccionar vaca
+            Point raton = new Point(Math.round(x / ancho), Math.round(y / alto));
+            for (int i = 0; i < vacas.size(); i++) {
+                Region r = new Region (getRegion(new Point(vacas.get(i).getX(), vacas.get(i).getY()), 50));
+                if (r.contains(raton.x, raton.y)) {
+                    vacaSelected = i;
+                    Toast toast = Toast.makeText(getContext(), "Vaca elegida: " + i, Toast.LENGTH_LONG);
+                    toast.show();
+                    // TODO Lanzar evento para obtener la info de la vaca elegida.
+                }
+            }
+        }
 
         if (dibujarVacas){
             //canvas.drawCircle(30/2, 30/2, 30, paint);
@@ -113,7 +134,9 @@ public class Teselado extends View {
                         for (int j = 0; j < tSize; j++){
                             canvas.drawLine((trayectoria.get(j).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(j + 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j + 1).y + d.getIntrinsicHeight() / 2) * alto, paint);
                         }
-                        dibujarFlecha(canvas, (trayectoria.get(tSize - 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize - 1).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(tSize).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize).y + d.getIntrinsicHeight() / 2) * alto,6, 6, paint);
+                        if (tSize > 0) {
+                            dibujarFlecha(canvas, (trayectoria.get(tSize - 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize - 1).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(tSize).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize).y + d.getIntrinsicHeight() / 2) * alto, 6, 6, paint);
+                        }
 
                         paint.setColor(Color.BLUE);
                     }
@@ -126,8 +149,9 @@ public class Teselado extends View {
                     if (oldsVacas.get(i) != null) {//CONDICION AGREGADA PARA ARREGLAR ERROR DE IR AL FINAL Y MOVER ANTERIOR
                         System.out.println("Vaca modificada: " + i + " - (X: " + oldsVacas.get(i).getX() + ", " + oldsVacas.get(i).getY() + ")"
                                 + " -> (X: " + vacasModificadas.get(i).getX() + ", " + vacasModificadas.get(i).getY() + ")");
-                        canvas.drawCircle((oldsVacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (oldsVacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, 4, paint);
-                        canvas.drawLine((oldsVacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (oldsVacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, (vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, paint);
+                        //canvas.drawCircle((oldsVacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (oldsVacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, 4, paint);
+                        //canvas.drawLine((oldsVacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (oldsVacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, (vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, paint);
+                        dibujarFlecha(canvas, (oldsVacas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (oldsVacas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, (vacasModificadas.get(i).getX() + d.getIntrinsicWidth() / 2) * ancho, (vacasModificadas.get(i).getY() + d.getIntrinsicHeight() / 2) * alto, 6, 6, paint);
                     }
                 } else {
                     d.setBounds((int) (vacas.get(i).getX() * ancho), (int) (vacas.get(i).getY() * alto), (int)((vacas.get(i).getX() + d.getIntrinsicWidth()) * ancho), (int) ((vacas.get(i).getY() + d.getIntrinsicHeight()) * alto));
@@ -153,7 +177,9 @@ public class Teselado extends View {
                         for (int j = 0; j < tSize; j++){
                             canvas.drawLine((trayectoria.get(j).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(j + 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(j + 1).y + d.getIntrinsicHeight() / 2) * alto, paint);
                         }
-                        dibujarFlecha(canvas, (trayectoria.get(tSize - 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize - 1).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(tSize).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize).y + d.getIntrinsicHeight() / 2) * alto,6, 6, paint);
+                        if (tSize > 0) {
+                            dibujarFlecha(canvas, (trayectoria.get(tSize - 1).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize - 1).y + d.getIntrinsicHeight() / 2) * alto, (trayectoria.get(tSize).x + d.getIntrinsicWidth() / 2) * ancho, (trayectoria.get(tSize).y + d.getIntrinsicHeight() / 2) * alto, 6, 6, paint);
+                        }
 
                         paint.setColor(Color.BLUE);
                     }
@@ -202,6 +228,12 @@ public class Teselado extends View {
         g.drawPath(wallpath, p);
     }
 
+    protected Rect getRegion(Point p, int ancho) {
+        ancho = ancho / 2;
+        return new Rect(p.x - ancho / 2, p.y - ancho / 2, p.x + ancho, p.y + ancho);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     public boolean onTouchEvent (MotionEvent me){
         x = me.getX();
         y = me.getY();
@@ -213,7 +245,9 @@ public class Teselado extends View {
             accion = "move";
         }
         if (me.getAction() == MotionEvent.ACTION_UP){
-            if ((x < xDown) && (y < yDown)) {
+            if (!(drawEvento || drawIntervalo)){
+                accion = "select";
+            } else if ((x < xDown) && (y < yDown)) {
                 stop(x / ancho, y / alto, xDown / ancho, yDown / alto);
             } else if (x < xDown) {
                 stop(x / ancho, yDown / alto, xDown / ancho, y / alto);
@@ -229,10 +263,10 @@ public class Teselado extends View {
         return true;
     }
 
-    public void draw (boolean algo){
+    /*public void draw (boolean algo){
         dibujarCirculo = algo;
         invalidate();
-    }
+    }*/
 
     public void drawVacas(boolean dibujar) {
         dibujarVacas = dibujar;
@@ -249,9 +283,9 @@ public class Teselado extends View {
         this.vacas = vacas;
     }
 
-    public void addVaca(Integer id, Vaca v){
+    /*public void addVaca(Integer id, Vaca v){
         this.vacas.put(id, v);
-    }
+    }*/
 
     public void setVacasModificadas (Map<Integer, Vaca> vacas) {
         this.vacasModificadas = vacas;
