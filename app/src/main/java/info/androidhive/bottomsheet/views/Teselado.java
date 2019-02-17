@@ -10,8 +10,6 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.shapes.OvalShape;
-import android.graphics.drawable.shapes.Shape;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,6 +22,7 @@ import java.util.Map;
 import bdet.comun.Punto;
 import info.androidhive.bottomsheet.R;
 import info.androidhive.bottomsheet.Vaca;
+import info.androidhive.bottomsheet.enums.Consultas;
 import info.androidhive.bottomsheet.listeners.Eventos;
 
 /**
@@ -32,10 +31,9 @@ import info.androidhive.bottomsheet.listeners.Eventos;
 public class Teselado extends View {
 
     Path path = new Path();
-    String accion;
+    String accion = "";
     float x = 50, y = 50;
     float xDown, yDown;
-    private boolean dibujarCirculo = false;
     private boolean dibujarVacas;
     private Map<Integer, Vaca> vacas;
     private Map<Integer, Vaca> vacasModificadas = new HashMap<>();
@@ -71,12 +69,12 @@ public class Teselado extends View {
         ancho = canvas.getWidth() / 1000f;
         alto  = canvas.getHeight() / 1000f;
 
-        if (accion == "down"){
+        if (accion.equals("down")){
             //path.moveTo(x, y);
             xDown = x;
             yDown = y;
         }
-        if (accion == "move" && (drawEvento || drawIntervalo)){
+        if ((accion.equals("move")) && (drawEvento || drawIntervalo)){
             //path.lineTo(x, y);
             path.reset();
             if ((x < xDown) && (y < yDown)) {
@@ -91,15 +89,14 @@ public class Teselado extends View {
             canvas.drawPath(path, paint);
         }
 
-        if (accion == "select") {
+        if (accion.equals("select")) {
             //TODO seleccionar vaca
             Point raton = new Point(Math.round(x / ancho), Math.round(y / alto));
             for (int i = 0; i < vacas.size(); i++) {
                 Region r = new Region (getRegion(new Point(vacas.get(i).getX(), vacas.get(i).getY()), 50));
                 if (r.contains(raton.x, raton.y)) {
                     vacaSelected = i;
-                    Toast toast = Toast.makeText(getContext(), "Vaca elegida: " + i, Toast.LENGTH_LONG);
-                    toast.show();
+                    vacaChosen(i);
                     // TODO Lanzar evento para obtener la info de la vaca elegida.
                 }
             }
@@ -140,7 +137,6 @@ public class Teselado extends View {
 
                         paint.setColor(Color.BLUE);
                     }
-                    //TODO DIBUJAR FLECHA
 
                     if (vacas.get(i).getX() != vacasModificadas.get(i).getX() || vacas.get(i).getY() != vacasModificadas.get(i).getY()) {
                         oldsVacas.put(i, vacas.put(i, vacasModificadas.get(i)));
@@ -293,40 +289,52 @@ public class Teselado extends View {
 
     private Eventos mOnStopTrackEventListener;
 
-    public void setOnStopTrackEventListener(Eventos eventListener)
-    {
+    public void setOnStopTrackEventListener(Eventos eventListener) {
         mOnStopTrackEventListener = eventListener;
     }
 
-    public void stop(float x, float y, float xDown, float yDown)
-    {
-        if(mOnStopTrackEventListener != null)
-        {
+    public void stop(float x, float y, float xDown, float yDown) {
+        if(mOnStopTrackEventListener != null) {
             mOnStopTrackEventListener.onStopTrack(x, y, xDown, yDown);
         }
+    }
 
+    public void vacaChosen(int idVaca) {
+        if(mOnStopTrackEventListener != null) {
+            mOnStopTrackEventListener.onVacaChosen(idVaca);
+        }
     }
 
     public void setVacasSeleccionadas(ArrayList<Integer> vacasID) {
-        this.drawIntervalo = true;
-        this.drawEvento = false;
-        this.drawTrayectoria = false;
         this.vacasSeleccionadas = vacasID;
     }
 
     public void setVacasInOut(ArrayList<Integer> vacasIn, ArrayList<Integer> vacasOut) {
-        this.drawIntervalo = false;
-        this.drawEvento = true;
-        this.drawTrayectoria = false;
         this.vacasIn = vacasIn;
         this.vacasOut = vacasOut;
     }
 
     public void setTrayectoria(int vacaID, ArrayList<Punto> trayectoria) {
-        this.drawIntervalo = false;
-        this.drawEvento = false;
-        this.drawTrayectoria = true;
         this.vacaSelected = vacaID;
         this.trayectoria = trayectoria;
+    }
+
+    public void setAction(Consultas action) {
+        switch (action){
+            case INTERVALO :
+                this.drawIntervalo = true;
+                this.drawEvento = false;
+                this.drawTrayectoria = false;
+                break;
+            case EVENTO:
+                this.drawIntervalo = false;
+                this.drawEvento = true;
+                this.drawTrayectoria = false;
+                break;
+            case TRAYECTORIA:
+                this.drawIntervalo = false;
+                this.drawEvento = false;
+                this.drawTrayectoria = true;
+        }
     }
 }

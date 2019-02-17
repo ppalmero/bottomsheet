@@ -131,6 +131,18 @@ public class MainActivity extends AppCompatActivity {
             Teselado t = (Teselado)findViewById(R.id.teseladoView);//((LinearLayout)((CardView)layoutBottomSheet.getChildAt(1)).getChildAt(0)).getChildAt(0);
             t.setVacas(vacas);
             t.drawVacas(true);
+            t.setOnStopTrackEventListener(new Eventos() {
+                @Override
+                public void onStopTrack(Float x, Float y, Float xDown, Float yDown) {
+
+                }
+
+                @Override
+                public void onVacaChosen(int id) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Vaca elegida: " + id, Toast.LENGTH_LONG);
+                    toast.show();
+                }
+            });
         } catch (JSONException e) {
             Toast toast = Toast.makeText(getApplicationContext(), "JSON Malformado " + e.getMessage(), Toast.LENGTH_LONG);
             toast.show();
@@ -315,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
             sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             Teselado t = findViewById(R.id.teseladoView);
+            t.setAction(Consultas.INTERVALO);
             t.setOnStopTrackEventListener(new Eventos() {
                 @Override
                 public void onStopTrack(Float xDown, Float yDown, Float x, Float y) {
@@ -349,6 +362,11 @@ public class MainActivity extends AppCompatActivity {
                         toast.show();
                     }
                 }
+
+                @Override
+                public void onVacaChosen(int id) {
+
+                }
             });
         } else if(requestCode == CONSULTA_EVENTO && resultCode == Activity.RESULT_OK){
             final long fi = data.getExtras().getLong("FI");
@@ -357,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
             sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             Teselado t = findViewById(R.id.teseladoView);
+            t.setAction(Consultas.EVENTO);
             t.setOnStopTrackEventListener(new Eventos() {
                 @Override
                 public void onStopTrack(Float xDown, Float yDown, Float x, Float y) {
@@ -396,7 +415,13 @@ public class MainActivity extends AppCompatActivity {
                         toast.show();
                     }
                 }
+
+                @Override
+                public void onVacaChosen(int id) {
+
+                }
             });
+
         } else if(requestCode == CONSULTA_TRAYECTORIA && resultCode == Activity.RESULT_OK){
             int vacaID = data.getExtras().getInt("Vaca");
             final long fi = data.getExtras().getLong("FI");
@@ -428,6 +453,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 Teselado t = findViewById(R.id.teseladoView);
+                t.setAction(Consultas.TRAYECTORIA);
                 t.setTrayectoria(vacaID, trayectorias);
                 t.drawVacas(true);
                 sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
