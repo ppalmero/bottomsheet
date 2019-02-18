@@ -148,10 +148,10 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
         }
 
-        /**
+        /*
          * bottom sheet state change listener
          * we are changing button text when sheet changed state
-         * */
+         */
         sheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject vaca = puntos.getJSONObject("Punto" + i);
                     vacas.put(i, new Vaca(vaca.getInt("x"), vaca.getInt("y")));
                 }
-                Teselado t = (Teselado)findViewById(R.id.teseladoView);
+                Teselado t = findViewById(R.id.teseladoView);
                 t.setVacas(vacas);
                 t.drawVacasInicio(true);
             } catch (JSONException e) {
@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < puntos.length(); i++) {
                             vacasID.add( puntos.getInt("ID" + i));
                         }
-                        Teselado t = (Teselado)findViewById(R.id.teseladoView);
+                        Teselado t = findViewById(R.id.teseladoView);
                         t.setVacasSeleccionadas(vacasID);
                         t.drawVacas(true);
                     } catch (JSONException e) {
@@ -467,7 +467,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void cargarCirculos() {
 
-        mCircleView = (CircleProgressView) findViewById(R.id.circleView);
+        mCircleView = findViewById(R.id.circleView);
         mCircleView.setOnProgressChangedListener(new CircleProgressView.OnProgressChangedListener() {
             @Override
             public void onProgressChanged(float value) {
